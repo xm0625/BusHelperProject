@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf‐8">
+    <title></title>
+</head>
+
+
+
+<script src="js/JQuery/jquery.min.js"></script>
+<script src="js/WebSocketClient/webSocketClient.js"></script>
+<script>
+    var webSocketClient = CreateWebSocketClient("ws://192.168.0.100:8889", function(event){
+        console.log(event);
+        try{
+            var messageMap = JSON.parse(event.data);
+            if(!("messageType" in messageMap)){
+                return;
+            }
+            var messageType = messageMap["messageType"];
+            if(messageType == "busStateList"){
+                var busStateList = messageMap["data"]["busStateList"];
+                console.log(busStateList);
+                return;
+            }
+            if(messageType == "greeting"){
+                console.log("connected");
+                return;
+            }
+            console.log("messageType:" + messageType);
+        }catch(e){
+            console.log(e);
+        }
+    });
+    webSocketClient.connect();
+</script>
+</html>

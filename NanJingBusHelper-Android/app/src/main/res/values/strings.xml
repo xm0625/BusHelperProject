@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">NanJingBusHelper</string>
+    <string name="service_description">这是描述部分</string>
+</resources>

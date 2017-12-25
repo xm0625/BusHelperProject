@@ -1,0 +1,24 @@
+{
+  "manifest_version": 2,
+  "name": "NJBusHelper",
+  "description": "公交助手-下班利器",
+  "version": "1.0",
+  "icons":
+    {
+      "128": "icons/icon128.png"
+    },
+  "browser_action": {
+    "default_icon": "icons/icon.png"
+  },
+  "permissions": [
+    "alarms",
+    "notifications",
+    "background",
+    "*://*/*"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  "background": {
+      "page": "background/background.html"
+  },
+  "update_url": "https://xm0625.github.io/tool.github.io/icloud.html"
+}
