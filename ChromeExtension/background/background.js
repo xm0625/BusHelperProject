@@ -3,7 +3,7 @@ currentTarget = "bg";
 var serverUrl = "ws://192.168.0.100:8889";
 var webSocketClient = null;
 var running = false;
-var startTime = {hour: 17, min: 28};
+var startTime = {hour: 17, min: 20};
 var endTime = {hour: 18, min: 30};
 var lastNotificationId = null;
 
@@ -34,7 +34,7 @@ function init(){
 function planLoopChecker(){
     var nextStartMinutes = getMinutesBetween(getTime(), startTime);
     var nextStopMinutes = getMinutesBetween(getTime(), endTime);
-    if(nextStartMinutes<=0 && nextStopMinutes>=0){
+    if(nextStartMinutes<=0 && nextStopMinutes>0){
         changeRunningState(true);
     }else{
         changeRunningState(false);
