@@ -28,38 +28,28 @@ function init(){
 
     initWebSocketClient();
 
-    changeRunningState(false);
+    planLoopChecker();
+}
 
+function planLoopChecker(){
     var nextStartMinutes = getMinutesBetween(getTime(), startTime);
     var nextStopMinutes = getMinutesBetween(getTime(), endTime);
     if(nextStartMinutes<=0 && nextStopMinutes>=0){
         changeRunningState(true);
+    }else{
+        changeRunningState(false);
     }
 
     if(nextStartMinutes<=0){
         nextStartMinutes = nextStartMinutes + 24*60;
     }
-    chrome.alarms.create("startRunningAlarm", {
-        delayInMinutes: nextStartMinutes,
-        periodInMinutes: 24*60
-    });
 
     if(nextStopMinutes<0){
         nextStopMinutes = nextStartMinutes + 24*60;
     }
-    chrome.alarms.create("stopRunningAlarm", {
-        delayInMinutes: nextStopMinutes,
-        periodInMinutes: 24*60
-    });
-    chrome.alarms.onAlarm.addListener(function(alarm){
-        if(alarm.name == "startRunningAlarm"){
-            changeRunningState(true);
-        }
-        if(alarm.name == "stopRunningAlarm"){
-            changeRunningState(false);
-        }
-    });
 
+    var nextCheckTimeout = (nextStartMinutes<=10 || nextStopMinutes<=10)?(30 * 1000):(10 * 60 * 1000);
+    setTimeout(loopChecker, nextCheckTimeout);
 }
 
 function switchRunningState(){
