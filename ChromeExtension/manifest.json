@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "NJBusHelper",
   "description": "公交助手-下班利器",
-  "version": "1.0",
+  "version": "1.1",
   "icons":
     {
       "128": "icons/icon128.png"
