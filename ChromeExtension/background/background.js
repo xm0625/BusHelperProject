@@ -48,8 +48,8 @@ function planLoopChecker(){
         nextStopMinutes = nextStartMinutes + 24*60;
     }
 
-    var nextCheckTimeout = (nextStartMinutes<=10 || nextStopMinutes<=10)?(30 * 1000):(10 * 60 * 1000);
-    setTimeout(loopChecker, nextCheckTimeout);
+    var nextCheckTimeout = (nextStartMinutes<=10 || nextStopMinutes<=10)?(10 * 1000):(10 * 60 * 1000);
+    setTimeout(planLoopChecker, nextCheckTimeout);
 }
 
 function switchRunningState(){
