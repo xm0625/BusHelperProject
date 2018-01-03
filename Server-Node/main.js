@@ -21,6 +21,7 @@ var busStateMap = {
  * //全局变量
  * */
 
+var config = {};
 
 /**
  * WebSocket Server
