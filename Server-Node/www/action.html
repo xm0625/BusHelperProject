@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf‐8">
+    <title>请稍后</title>
+</head>
+
+
+<script src="js/JQuery/jquery.min.js"></script>
+<!--<script src="js/WebSocketClient/webSocketClient.js"></script>-->
+<script>
+    var serverUrl = "http://192.168.0.100:8888";
+
+    function getLocationQueryString(name) {
+        var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if(r!=null)
+            return  decodeURIComponent(r[2]);
+        return null;
+    }
+
+    function init(){
+        var action = getLocationQueryString("action");
+        var botNo = getLocationQueryString("botNo");
+        var postData;
+        if(action == "mute"){
+            postData = {};
+            postData["botNo"] = botNo;
+            $.post(serverUrl + "/dingDingBot/mute", postData).then(function(data){
+                $("title").text("操作成功");
+            }).fail(function(){
+                $("title").text("操作失败");
+            });
+        }
+        if(action == "unMute"){
+            postData = {};
+            postData["botNo"] = botNo;
+            $.post(serverUrl + "/dingDingBot/unMute", postData).then(function(data){
+                $("title").text("操作成功");
+            }).fail(function(){
+                $("title").text("操作失败");
+            });
+        }
+    }
+
+    init();
+</script>
+</html>

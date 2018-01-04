@@ -1,12 +1,17 @@
 const SimpleHttpServer = require("./SimpleHttpServer");
+const StaticFileHttpServer = require("./StaticFileHttpServer");
 const businessError = SimpleHttpServer.businessError;
 const WebSocket = require('ws');
-
+const fs = require('fs');
+const request = require("superagent");
 
 /**
  * 全局final变量
  * */
 const REPORT_API_TOKEN = "ThisIsToken";
+const START_TIME = {hour: 17, min: 20};
+const END_TIME = {hour: 18, min: 30};
+const STATIC_HTTP_SERVER_URL = "http://192.168.0.100:8088";
 /**
  * //全局final变量
  * */
@@ -17,11 +22,31 @@ const REPORT_API_TOKEN = "ThisIsToken";
 /**公交线路ID对公交信息列表映射Map*/
 var busStateMap = {
 };
+
+var lastUpdateTime = 0;
 /**
  * //全局变量
  * */
 
-var config = {};
+var config = {
+	"dingDingBot": {
+		"noToDetail": {
+			"demoBotNo": {
+				"webHook": "xxxx",
+				"wayNo": "",
+				"state": false
+			}
+		},
+		"webHookToNo": {},
+		"wayNoToBotNoListMap":{
+			"demoWayNo": {
+				"demoBotNo": 1
+			}
+		}
+	}
+};
+
+//TODO startTime定时开  endTime 定时置为关 最后开启日 最后关闭日
 
 /**
  * WebSocket Server
@@ -99,8 +124,11 @@ SimpleHttpServer.addRoute("/busStateReport", ["GET", "POST"], function(params, d
 	if(params["token"] != REPORT_API_TOKEN){
 		throw businessError("api token not valid");
 	}
-	var oldBusStateList = params["wayNo"] in busStateMap?busStateMap[params["wayNo"]]:[];
+	var wayNo = params["wayNo"];
+	var oldBusStateList = wayNo in busStateMap?busStateMap[wayNo]:[];
 	var newBusStateList = JSON.parse(params["busStateList"]);
+	busStateMap[wayNo] = newBusStateList;
+	lastUpdateTime = new Date().getTime();
 	setTimeout(function () {
 		if(oldBusStateList.length != newBusStateList.length){
 			pushBusStateListMessage(newBusStateList);
@@ -113,24 +141,78 @@ SimpleHttpServer.addRoute("/busStateReport", ["GET", "POST"], function(params, d
 			var oldBusState = oldBusStateList[i];
 			var newBusState = newBusStateList[i];
 			if(oldBusState["busStopNumber"] != newBusState["busStopNumber"]){
-				pushBusStateListMessage(newBusStateList);
+				setTimeout(function(){
+					pushBusStateListMessage(newBusStateList);
+				}, 1);
+				setTimeout(function(){
+					pushDingDingBotMessage(wayNo, newBusStateList);
+				}, 1);
 				return;
 			}
 		}
 	}, 1);
-	busStateMap[params["wayNo"]] = newBusStateList;
 	dtd.resolve();
 });
 
 SimpleHttpServer.addRoute("/getBusStateListByWayNo", ["GET", "POST"], function(params, dtd, req){
 	var busStateList = params["wayNo"] in busStateMap?busStateMap[params["wayNo"]]:[];
 
-
 	dtd.resolve({"busStateList": busStateList});
 });
 
-SimpleHttpServer.startServer(8888);
+SimpleHttpServer.addRoute("/dingDingBot/add", ["GET", "POST"], function(params, dtd, req){
+	if(!("wayNo" in params)){
+		throw businessError("wayNo is empty");
+	}
+	var wayNo = params["wayNo"];
+	if(!("webHook" in params)){
+		throw businessError("webHook is empty");
+	}
+	var webHook = params["webHook"];
+	if(webHook in config["dingDingBot"]["webHookToNo"]){
+		throw businessError("webHook already exist");
+	}
+	var botNo = Math.random()*100000000000000000+"";
+	config["dingDingBot"]["noToDetail"][botNo] = {
+		"webHook": webHook,
+		"wayNo": wayNo,
+		"state": true
+	};
+	config["dingDingBot"]["webHookToNo"][webHook] = botNo;
 
+	if(!(wayNo in config["dingDingBot"]["wayNoToBotNoListMap"])){
+		config["dingDingBot"]["wayNoToBotNoListMap"][wayNo] = {};
+	}
+	config["dingDingBot"]["wayNoToBotNoListMap"][wayNo][botNo] = 1;
+
+	setTimeout(saveConfig, 50);
+
+	dtd.resolve({});
+});
+
+SimpleHttpServer.addRoute("/dingDingBot/mute", ["GET", "POST"], function(params, dtd, req){
+	if(!("botNo" in params)){
+		throw businessError("botNo is empty");
+	}
+	var botNo = params["botNo"];
+	config["dingDingBot"]["noToDetail"][botNo]["state"] = false;
+
+	setTimeout(saveConfig, 50);
+
+	dtd.resolve({});
+});
+
+SimpleHttpServer.addRoute("/dingDingBot/unMute", ["GET", "POST"], function(params, dtd, req){
+	if(!("botNo" in params)){
+		throw businessError("botNo is empty");
+	}
+	var botNo = params["botNo"];
+
+	config["dingDingBot"]["noToDetail"][botNo]["state"] = false;
+
+	setTimeout(saveConfig, 50);
+	dtd.resolve({});
+});
 
 function pushBusStateListMessage(busStateList){
 	wss.clients.forEach(function each(ws) {
@@ -143,3 +225,75 @@ function pushBusStateListMessage(busStateList){
 		}
 	});
 }
+
+function pushDingDingBotMessage(wayNo, busStateList){
+	if(!(wayNo in config["dingDingBot"]["wayNoToBotNoListMap"])){
+		return;
+	}
+
+	var messsage = generateMsgFromBusStateList(busStateList);
+
+	var botNoListMap = config["dingDingBot"]["wayNoToBotNoListMap"][wayNo];
+	for(var botNo in botNoListMap){
+		if(!(botNo in config["dingDingBot"]["noToDetail"])){
+			continue;
+		}
+		var dingDingBotDetail = config["dingDingBot"]["noToDetail"][botNo];
+		if(dingDingBotDetail["state"]){
+			request.post(dingDingBotDetail["webHook"]).set('Content-Type', 'application/json').send(JSON.stringify(
+				{
+					"actionCard": {
+						"title": messsage,
+						"text": messsage,
+						"hideAvatar": "0",
+						"btnOrientation": "0",
+						"btns": [
+							{
+								"title": "停止播报",
+								"actionURL": STATIC_HTTP_SERVER_URL+"/action.html?action=mute&botNo="+botNo
+							},
+							{
+								"title": "重新开启",
+								"actionURL": STATIC_HTTP_SERVER_URL+"/action.html?action=unMute&botNo="+botNo
+							}
+						]
+					},
+					"msgtype": "actionCard"
+				}
+			));
+		}
+	}
+}
+
+function generateMsgFromBusStateList(busStateList){
+	var message = "";
+	if(busStateList.length==0){
+		return "等待发车"
+	}
+	var firstBusState = busStateList[0];
+	message = message + "下一班车:"+ generateBusStateMessage(firstBusState);
+	var secondBusState = busStateList.length>=2?busStateList[1]:null;
+	if(secondBusState == null){
+		return message;
+	}
+	message = message + "\n下下一班车:"+ generateBusStateMessage(secondBusState);
+	return message;
+}
+
+function loadConfig(){
+	if(fs.existsSync('./config.json')){
+		var content = fs.readFileSync('./config.json', {encoding: "utf-8"});
+		if (content.charCodeAt(0) === 0xFEFF) {
+			content = content.slice(1);
+		}
+		config = JSON.parse(content);
+	}
+}
+
+function saveConfig(){
+	fs.writeFileSync('./config.json', JSON.stringify(config), {encoding: "utf-8"})
+}
+
+loadConfig();
+SimpleHttpServer.startServer(8888);
+StaticFileHttpServer.startServer("./www", 8088);
