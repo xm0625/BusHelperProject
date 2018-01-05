@@ -231,7 +231,7 @@ function pushDingDingBotMessage(wayNo, busStateList){
 		return;
 	}
 
-	var messsage = generateMsgFromBusStateList(busStateList);
+	var message = generateMsgFromBusStateList(busStateList);
 
 	var botNoListMap = config["dingDingBot"]["wayNoToBotNoListMap"][wayNo];
 	for(var botNo in botNoListMap){
@@ -243,8 +243,8 @@ function pushDingDingBotMessage(wayNo, busStateList){
 			request.post(dingDingBotDetail["webHook"]).set('Content-Type', 'application/json').send(JSON.stringify(
 				{
 					"actionCard": {
-						"title": messsage,
-						"text": messsage,
+						"title": message,
+						"text": message,
 						"hideAvatar": "0",
 						"btnOrientation": "0",
 						"btns": [
