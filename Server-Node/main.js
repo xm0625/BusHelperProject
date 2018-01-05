@@ -11,7 +11,7 @@ const request = require("superagent");
 const REPORT_API_TOKEN = "ThisIsToken";
 const START_TIME = {hour: 17, min: 20};
 const END_TIME = {hour: 18, min: 30};
-const STATIC_HTTP_SERVER_URL = "http://192.168.0.100:8088";
+const STATIC_HTTP_SERVER_URL = "http://192.168.0.100:8808";
 /**
  * //全局final变量
  * */
@@ -296,4 +296,4 @@ function saveConfig(){
 
 loadConfig();
 SimpleHttpServer.startServer(8888);
-StaticFileHttpServer.startServer("./www", 8088);
+StaticFileHttpServer.startServer("./www", 8808);
