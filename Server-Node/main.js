@@ -240,7 +240,7 @@ function pushDingDingBotMessage(wayNo, busStateList){
 		}
 		var dingDingBotDetail = config["dingDingBot"]["noToDetail"][botNo];
 		if(dingDingBotDetail["state"]){
-			request.post(dingDingBotDetail["webHook"]).set('Content-Type', 'application/json').send(JSON.stringify(
+			var postData = JSON.stringify(
 				{
 					"actionCard": {
 						"title": message,
@@ -259,8 +259,11 @@ function pushDingDingBotMessage(wayNo, busStateList){
 						]
 					},
 					"msgtype": "actionCard"
-				}
-			));
+				});
+			console.log("postData:"+postData);
+			request.post(dingDingBotDetail["webHook"]).set('Content-Type', 'application/json').send(postData).then(function(res) {
+				console.log('res:' + JSON.stringify(res.body));
+			});
 		}
 	}
 }
