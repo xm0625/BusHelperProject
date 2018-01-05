@@ -29,6 +29,8 @@ var lastUpdateTime = 0;
  * */
 
 var config = {
+	"lastStartPushDayString": "2018-01-01",
+	"lastStopPushDayString": "2018-01-01",
 	"dingDingBot": {
 		"noToDetail": {
 			"demoBotNo": {
@@ -95,7 +97,7 @@ wss.on('connection', function connection(ws, req) {
 	ws.send(JSON.stringify({"messageType": "greeting"}));
 });
 
-const interval = setInterval(function ping() {
+const interval = setInterval(function() {
 	wss.clients.forEach(function each(ws) {
 		if (ws.isAlive === false) {
 			console.log("terminate");
@@ -318,6 +320,60 @@ function loadConfig(){
 function saveConfig(){
 	fs.writeFileSync('./config.json', JSON.stringify(config), {encoding: "utf-8"})
 }
+
+function formatDate(time) {
+	if(typeof(time) == 'string'){
+		time = time.replace(/-/g, "/")
+	}
+	var now = new Date(time);
+	var year=now.getFullYear();
+	var month=(now.getMonth()+1)<10?"0"+(now.getMonth()+1):now.getMonth()+1;
+	var date=now.getDate()<10?"0"+now.getDate():now.getDate();
+	var hour=now.getHours()<10?"0"+now.getHours():now.getHours();
+	var minute=now.getMinutes()<10?"0"+now.getMinutes():now.getMinutes();
+	var second=now.getSeconds()<10?"0"+now.getSeconds():now.getSeconds();
+	return year+"-"+month+"-"+date+" "+hour+":"+minute+":"+second;
+}
+
+function getTime(){
+	var now = new Date();
+	return {hour: now.getHours(), min: now.getMinutes()};
+}
+
+function getMinutesBetween(startTime, endTime){
+	return (endTime.hour-startTime.hour)*60 + (endTime.min-startTime.min)
+}
+
+
+const dingDingPushStateSwitcherInterval = setInterval(function() {
+	var todayDayString = formatDate(new Date()).substring(0,10);
+	if(todayDayString != config["lastStartPushDayString"]){
+		//今天还没有触发过开启推送
+		//检查是否需要开启所有人的推送
+		var nextStartMinutes = getMinutesBetween(getTime(), START_TIME);
+		var isNeedStartPush = nextStartMinutes >= 0;
+		if(isNeedStartPush){
+			config["lastStartPushDayString"] = todayDayString;
+			setTimeout(saveConfig, 50);
+			for(var botNo in config["dingDingBot"]["noToDetail"]){
+				config["dingDingBot"]["noToDetail"][botNo]["state"] = true;
+			}
+		}
+	}
+	if(todayDayString != config["lastStopPushDayString"]){
+		//今天还没有触发过关闭推送
+		//检查是否需要关闭所有人的推送
+		var nextStopMinutes = getMinutesBetween(END_TIME, getTime());
+		var isNeedStopPush = nextStopMinutes > 0;
+		if(isNeedStopPush){
+			config["lastStopPushDayString"] = todayDayString;
+			setTimeout(saveConfig, 50);
+			for(var botNo in config["dingDingBot"]["noToDetail"]){
+				config["dingDingBot"]["noToDetail"][botNo]["state"] = false;
+			}
+		}
+	}
+}, 1000);
 
 loadConfig();
 SimpleHttpServer.startServer(8888);
