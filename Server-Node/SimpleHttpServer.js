@@ -16,13 +16,25 @@ var addRoute = function(pathInfo, methodList, callFunc){
 };
 
 var responseSuccess = function(res, data){
-    res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+    res.writeHead(200, {
+        'Content-Type': 'text/plain;charset=utf-8',
+        'Access-Control-Allow-Origin': "*",
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,OPTIONS',
+        'Access-Control-Allow-Headers': 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type'
+    });
     res.write(JSON.stringify({"code": "0", "message": "", "data": data}));
     res.end();
 };
 
 var responseError = function(res, error){
-    res.writeHead(200, {'Content-Type': 'text/plain;charset=utf-8'});
+    res.writeHead(200, {
+        'Content-Type': 'text/plain;charset=utf-8',
+        'Access-Control-Allow-Origin': "*",
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,OPTIONS',
+        'Access-Control-Allow-Headers': 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type'
+    });
     res.write(JSON.stringify({"code": error["code"], "message": error["message"]}));
     res.end();
 };
