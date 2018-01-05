@@ -280,6 +280,28 @@ function generateMsgFromBusStateList(busStateList){
 	return message;
 }
 
+
+function generateBusStateMessage(busState){
+	var message = "";
+	var busStopNumber = busState["busStopNumber"];
+	if(busStopNumber>=1){
+		message = message + "还有";
+		var busStopNumberInt = parseInt(busStopNumber);
+		message = message + busStopNumberInt + "站";
+		if(busStopNumberInt!=busStopNumber){
+			message = message + "半";
+		}
+	}
+	if(busStopNumber==0.5){
+		message = message + "即将";
+	}
+	if(busStopNumber==0){
+		message = message + "已";
+	}
+	message = message + "到站";
+	return message;
+}
+
 function loadConfig(){
 	if(fs.existsSync('./config.json')){
 		var content = fs.readFileSync('./config.json', {encoding: "utf-8"});
