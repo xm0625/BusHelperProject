@@ -13,9 +13,7 @@ function setBadgeText(text){
 
 function getTime(){
     var now = new Date();
-    var hour=now.getHours()<10?"0"+now.getHours():now.getHours();
-    var minute=now.getMinutes()<10?"0"+now.getMinutes():now.getMinutes();
-    return {hour: hour, min: minute};
+    return {hour: now.getHours(), min: now.getMinutes()};
 }
 
 function getMinutesBetween(startTime, endTime){
@@ -45,7 +43,7 @@ function planLoopChecker(){
     }
 
     if(nextStopMinutes<0){
-        nextStopMinutes = nextStartMinutes + 24*60;
+        nextStopMinutes = nextStopMinutes + 24*60;
     }
 
     var nextCheckTimeout = (nextStartMinutes<=10 || nextStopMinutes<=10)?(10 * 1000):(10 * 60 * 1000);
