@@ -208,7 +208,7 @@ SimpleHttpServer.addRoute("/dingDingBot/unMute", ["GET", "POST"], function(param
 	}
 	var botNo = params["botNo"];
 
-	config["dingDingBot"]["noToDetail"][botNo]["state"] = false;
+	config["dingDingBot"]["noToDetail"][botNo]["state"] = true;
 
 	setTimeout(saveConfig, 50);
 	dtd.resolve({});
