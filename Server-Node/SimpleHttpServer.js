@@ -43,10 +43,11 @@ var businessError = function(args){
     var error = new Error();
     error.code = "-1";
     error.message = "system internal error";
-    if(arguments.length=1){
+    console.log(arguments.length);
+    if(arguments.length==1){
         error.message = arguments[0];
     }
-    if(arguments.length=2){
+    if(arguments.length==2){
         error.code = arguments[0];
         error.message = arguments[1];
     }
