@@ -351,7 +351,7 @@ const dingDingPushStateSwitcherInterval = setInterval(function() {
 		//今天还没有触发过开启推送
 		//检查是否需要开启所有人的推送
 		var nextStartMinutes = getMinutesBetween(getTime(), START_TIME);
-		var isNeedStartPush = nextStartMinutes >= 0;
+		var isNeedStartPush = nextStartMinutes <= 0;
 		if(isNeedStartPush){
 			config["lastStartPushDayString"] = todayDayString;
 			setTimeout(saveConfig, 50);
@@ -363,8 +363,8 @@ const dingDingPushStateSwitcherInterval = setInterval(function() {
 	if(todayDayString != config["lastStopPushDayString"]){
 		//今天还没有触发过关闭推送
 		//检查是否需要关闭所有人的推送
-		var nextStopMinutes = getMinutesBetween(END_TIME, getTime());
-		var isNeedStopPush = nextStopMinutes > 0;
+		var nextStopMinutes = getMinutesBetween(getTime(), END_TIME);
+		var isNeedStopPush = nextStopMinutes < 0;
 		if(isNeedStopPush){
 			config["lastStopPushDayString"] = todayDayString;
 			setTimeout(saveConfig, 50);
